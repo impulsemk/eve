@@ -118,6 +118,9 @@ class Eve(Flask, Events):
 
     #: Allowed methods for item endpoints
     supported_item_methods = ['GET', 'PATCH', 'DELETE', 'PUT']
+    
+    # Allowed fields for method settings
+    supported_method_fields = ['transparent_schema_rules','allow_unknown']
 
     def __init__(self, import_name=__package__, settings='settings.py',
                  validator=Validator, data=Mongo, auth=None, redis=None,
@@ -293,7 +296,7 @@ class Eve(Flask, Events):
         self.validate_methods(self.supported_resource_methods,
                               self.config.get('RESOURCE_METHODS'),
                               'resource')
-
+    
         # make sure that global item methods are supported.
         self.validate_methods(self.supported_item_methods,
                               self.config.get('ITEM_METHODS'),
@@ -314,6 +317,7 @@ class Eve(Flask, Events):
 
         .. versionadded:: 0.2
         """
+            
         self.validate_methods(self.supported_resource_methods,
                               settings['resource_methods'],
                               '[%s] resource ' % resource)
@@ -329,14 +333,14 @@ class Eve(Flask, Events):
                 raise ConfigException('A resource schema must be provided '
                                       'when POST or PATCH methods are allowed '
                                       'for a resource [%s].' % resource)
-
+        
         self.validate_roles('allowed_roles', settings, resource)
         self.validate_roles('allowed_read_roles', settings, resource)
         self.validate_roles('allowed_write_roles', settings, resource)
         self.validate_roles('allowed_item_roles', settings, resource)
         self.validate_roles('allowed_item_read_roles', settings, resource)
         self.validate_roles('allowed_item_write_roles', settings, resource)
-
+        
         if settings['auth_field'] == settings['id_field']:
             raise ConfigException('"%s": auth_field cannot be set to id_field '
                                   '(%s)' % (resource, settings['id_field']))
@@ -375,7 +379,23 @@ class Eve(Flask, Events):
                                   'Supported: %s' %
                                   (item, ', '.join(diff),
                                    ', '.join(allowed)))
+    
+    def validate_method_fields(self, allowed, proposed, method):
+        """ Compares allowed and proposed methods, raising a `ConfigException`
+        when they don't match.
 
+        :param allowed: a list of supported (allowed) methods.
+        :param proposed: a list of proposed methods.
+        :param item: name of the item to which the methods would be applied.
+                     Used when raising the exception.
+        """
+        diff = set(proposed.keys()) - set(allowed)
+        if diff:
+            raise ConfigException('Unallowed %s field setting(s): %s. '
+                                  'Supported: %s' %
+                                  (method, ', '.join(diff),
+                                   ', '.join(allowed)))
+    
     def validate_schema(self, resource, schema):
         """ Validates a resource schema.
 
@@ -882,6 +902,32 @@ class Eve(Flask, Events):
 
         .. versionadded:: 0.2
         """
+
+        if isinstance(settings['resource_methods'], dict):
+            settings['resource_methods_settings'] = {}
+            for cur_method in settings['resource_methods'].keys():
+                if settings['resource_methods'][cur_method] and isinstance(settings['resource_methods'], dict) \
+                and len(settings['resource_methods'][cur_method]) > 0:
+                    self.validate_method_fields(self.supported_method_fields,
+                    settings['resource_methods'][cur_method],cur_method)
+                    settings['resource_methods_settings'][cur_method] = settings
+                    settings['resource_methods_settings'][cur_method] \
+                    .update(settings['resource_methods'][cur_method])
+                
+            settings['resource_methods'] = settings['resource_methods'].keys()
+
+        if isinstance(settings['item_methods'], dict):
+            settings['item_methods_settings'] = {}
+            for cur_method in settings['item_methods'].keys():
+                if settings['item_methods'][cur_method] and isinstance(settings['item_methods'], dict) \
+                and len(settings['item_methods'][cur_method]) > 0:
+                    self.validate_method_fields(self.supported_method_fields,
+                    settings['item_methods'][cur_method],cur_method)
+                    settings['item_methods_settings'][cur_method] = settings
+                    settings['item_methods_settings'][cur_method] \
+                    .update(settings['item_methods'][cur_method])
+    
+            settings['item_methods'] = settings['item_methods'].keys()
 
         # this line only makes sense when we call this function outside of the
         # standard Eve setup routine, but it doesn't hurt to still call it

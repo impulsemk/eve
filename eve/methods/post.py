@@ -151,7 +151,7 @@ def post_internal(resource, payl=None, skip_validation=False):
     date_utc = datetime.utcnow().replace(microsecond=0)
     resource_def = app.config['DOMAIN'][resource]
     schema = resource_def['schema']
-    validator = None if skip_validation else app.validator(schema, resource)
+    validator = None if skip_validation else app.validator(schema, resource, resource_method='POST')
     documents = []
     results = []
     failures = 0

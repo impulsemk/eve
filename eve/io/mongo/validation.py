@@ -52,16 +52,20 @@ class Validator(Validator):
        Support for 'transparent_schema_rules' introduced with Cerberus 0.0.3,
        which allows for insertion of 'default' values in POST requests.
     """
-    def __init__(self, schema=None, resource=None, allow_unknown=False,
+    def __init__(self, schema=None, resource=None, resource_method=None, item_method=None, allow_unknown=False,
                  transparent_schema_rules=False):
         self.resource = resource
         self._id = None
         self._original_document = None
 
         if resource:
-            transparent_schema_rules = \
-                config.DOMAIN[resource]['transparent_schema_rules']
-            allow_unknown = config.DOMAIN[resource]['allow_unknown']
+            root_setting = config.DOMAIN[resource]
+            if resource_method and 'resource_methods_settings' in config.DOMAIN[resource]: 
+                root_setting = config.DOMAIN[resource]['resource_methods_settings'][resource_method]
+            elif item_method and 'item_methods_settings' in config.DOMAIN[resource]:
+                root_setting = config.DOMAIN[resource]['item_methods_settings'][item_method]
+            transparent_schema_rules = root_setting['transparent_schema_rules']
+            allow_unknown = root_setting['allow_unknown']
         super(Validator, self).__init__(
             schema,
             transparent_schema_rules=transparent_schema_rules,
