@@ -12,6 +12,7 @@
 import fnmatch
 import os
 import sys
+import copy
 
 import copy
 from events import Events
@@ -120,7 +121,7 @@ class Eve(Flask, Events):
     supported_item_methods = ['GET', 'PATCH', 'DELETE', 'PUT']
     
     # Allowed fields for method settings
-    supported_method_fields = ['transparent_schema_rules','allow_unknown']
+    supported_method_fields = ['transparent_schema_rules','allow_unknown', 'schema']
 
     def __init__(self, import_name=__package__, settings='settings.py',
                  validator=Validator, data=Mongo, auth=None, redis=None,
@@ -910,7 +911,7 @@ class Eve(Flask, Events):
                 and len(settings['resource_methods'][cur_method]) > 0:
                     self.validate_method_fields(self.supported_method_fields,
                     settings['resource_methods'][cur_method],cur_method)
-                    settings['resource_methods_settings'][cur_method] = settings
+                    settings['resource_methods_settings'][cur_method] = copy.deepcopy(settings)
                     settings['resource_methods_settings'][cur_method] \
                     .update(settings['resource_methods'][cur_method])
                 
@@ -923,7 +924,7 @@ class Eve(Flask, Events):
                 and len(settings['item_methods'][cur_method]) > 0:
                     self.validate_method_fields(self.supported_method_fields,
                     settings['item_methods'][cur_method],cur_method)
-                    settings['item_methods_settings'][cur_method] = settings
+                    settings['item_methods_settings'][cur_method] = copy.deepcopy(settings)
                     settings['item_methods_settings'][cur_method] \
                     .update(settings['item_methods'][cur_method])
     

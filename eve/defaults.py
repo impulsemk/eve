@@ -14,6 +14,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
+EXCLUDED_DICTS_KEYS = ['resource_methods','item_methods']
 
 def build_defaults(schema):
     """Build a tree of default values
@@ -44,9 +45,9 @@ def build_defaults(schema):
                     current[name] = value['default']
                 except TypeError:
                     current.append(value['default'])
-            elif value.get('type') == 'dict' and 'schema' in value:
+            elif value.get('type') == 'dict' and 'schema' in value and value not in EXCLUDED_DICTS_KEYS:
                 default_next_level = {}
-            elif value.get('type') == 'list' and 'schema' in value:
+            elif value.get('type') == 'list' and 'schema' in value not in EXCLUDED_DICTS_KEYS:
                 default_next_level = []
 
             if default_next_level is not None:

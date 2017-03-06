@@ -64,8 +64,10 @@ class Validator(Validator):
                 root_setting = config.DOMAIN[resource]['resource_methods_settings'][resource_method]
             elif item_method and 'item_methods_settings' in config.DOMAIN[resource]:
                 root_setting = config.DOMAIN[resource]['item_methods_settings'][item_method]
-            transparent_schema_rules = root_setting['transparent_schema_rules']
-            allow_unknown = root_setting['allow_unknown']
+            if 'schema' in root_setting:
+                schema = root_setting['schema']
+            transparent_schema_rules = root_setting['transparent_schema_rules'] if 'transparent_schema_rules' in root_setting else transparent_schema_rules
+            allow_unknown = root_setting['allow_unknown'] if 'allow_unknown' in root_setting else allow_unknown
         super(Validator, self).__init__(
             schema,
             transparent_schema_rules=transparent_schema_rules,
