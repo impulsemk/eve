@@ -904,7 +904,7 @@ class Eve(Flask, Events):
         .. versionadded:: 0.2
         """
 
-        if isinstance(settings['resource_methods'], dict):
+        if 'resource_methods' in settings and isinstance(settings['resource_methods'], dict):
             settings['resource_methods_settings'] = {}
             for cur_method in settings['resource_methods'].keys():
                 if settings['resource_methods'][cur_method] and isinstance(settings['resource_methods'], dict) \
@@ -917,7 +917,7 @@ class Eve(Flask, Events):
                 
             settings['resource_methods'] = settings['resource_methods'].keys()
 
-        if isinstance(settings['item_methods'], dict):
+        if 'item_methods' in settings and isinstance(settings['item_methods'], dict):
             settings['item_methods_settings'] = {}
             for cur_method in settings['item_methods'].keys():
                 if settings['item_methods'][cur_method] and isinstance(settings['item_methods'], dict) \
